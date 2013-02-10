@@ -22,14 +22,14 @@ uint16_t      spectrum[FFT_N/2]; // Spectrum output buffer
 volatile byte samplePos = 0;     // Buffer position counter
 
 // end FFT stuff
-bool rainbow;
+int rainbow;
 int lastButtonState; 
 
 void setup(){
   display = new HackathonDisplay();
   display->begin();
   pinMode(7, INPUT);
-  rainbow = true;
+  rainbow = 0;
   lastButtonState = 0;
 
   Serial.begin(9600);
@@ -71,11 +71,27 @@ void loop(){
     display->Color333(0,0,7)
   };
 
+  int colors3[] = {
+
+    display->Color333(0,0,7),
+
+    display->Color333(1,0,6),
+    display->Color333(2,0,5),
+    display->Color333(3,0,4),
+    display->Color333(4,0,3),
+    display->Color333(5,0,2),
+    display->Color333(6,0,1),
+
+    display->Color333(7,0,0)
+  };
+  
+
   int buttonState = digitalRead(7);
   if (buttonState != lastButtonState){
 
     if (buttonState == HIGH){
-      rainbow = !rainbow;
+      rainbow++;
+      rainbow %= 3;
       Serial.print("rainbow: ");
       Serial.println(rainbow);
     }
@@ -88,10 +104,12 @@ void loop(){
   if(bassAmp > bassThresh){
     int bucketN = bassAmp % 8;
     int color = display->Color333(0,bucketN+1,9-bucketN);
-    if(rainbow){
+    if(rainbow == 0){
       rain(bucketN, colors2[bucketN]);
-    } else {
+    } else if (rainbow == 1){
       rain(bucketN, colors[bucketN]);
+    } else if (rainbow == 2) {
+      rain(bucketN, colors3[bucketN]);
     }
   }
 }
