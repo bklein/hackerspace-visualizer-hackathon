@@ -26,7 +26,6 @@ volatile byte samplePos = 0;     // Buffer position counter
 void setup(){
   display = new HackathonDisplay();
   display->begin();
-
   Serial.begin(9600);
 
   initialize_fft();
@@ -37,31 +36,82 @@ void loop(){
 
   capture_and_process_audio();
 
-  int red, blue, green, black;
-  red = display->Color333(255, 0, 0);
-  green = display->Color333(0, 255, 0);
-  blue = display->Color333(0, 0, 255);
+  int red, blue, green, black, white;
+  red = display->Color333(7, 0, 0);
+  green = display->Color333(0, 7, 0);
+  blue = display->Color333(0, 0, 7);
+  white = display->Color333(7,7,7);
   black = 0;
 
   int sum = 0;
-  for (int i = 0; i < FFT_N/2; i++){
+  for (int i = 0; i < 2; i++){
     sum += spectrum[i];
   }
   sum %= 16;
-  
-  
+  int bassAmp = spectrum[0]+spectrum[1];
+  int trebleAmp = spectrum[2] + spectrum[3];
+  //Serial.print(bassAmp);
+  //Serial.print("\t");
+  //Serial.println(trebleAmp);
 
-  display->drawCircle(15, 7, sum, red);
-  if (sum > 8){
-    // draw filled in and fade
-    for (int r = 0; r < sum; r++){
-      display->drawCircle(16, 7, r, (sum%2==0 ? (r%3==0 ? green: red) : blue));
-    }
-    for (int r = sum; r < 15; r++){
-      display->drawCircle(16, 7, r, 0);
+  //Serial.println(bassAmp);
+  int bassThresh, trebThresh;
+  bassThresh = 150;
+
+  if (bassAmp > bassThresh){
+    // draw circle
+    int row = bassAmp % 16;
+    display->drawLine(0, row, 15, row, green);
+    for (int i = 0; i < 15; i++){
+      display->drawLine(0, i, 15, i, green);
     }
       
+  } else {
+    // erase circle
+    int row = bassAmp % 16;
+    display->drawLine(0, row, 15, row, blue);
   }
+  //display->drawCircle(8,4,bassAmp % 5, red);
+    
+  //for (int row = 0; row < 16; row++){
+  //  int color; 
+  //  display->drawLine(0, 15, 15, 15, green);
+  //  display->drawLine(16, 15, 31, 15, blue);
+
+  //  color = bassAmp == row ? green : black;
+  //  display->drawLine(0, row, 15, row, color);
+
+  //  //color = trebleAmp == row ? blue : black;
+  //  //display->drawLine(16, row, 31, row, color);
+  //  delay(500);
+  //}
+  
+  
+  //display->drawCircle(0, 0, bassAmp, green);
+  //display->drawCircle(0, 0, bassAmp+1, green);
+  //display->drawCircle(0, 0, bassAmp, 0);
+  //display->drawCircle(0, 0, bassAmp+1, 0);
+  //display->drawCircle(0, 15, trebleAmp, blue);
+  //display->drawCircle(0, 15, trebleAmp+1, blue);
+  //display->drawCircle(0, 15, trebleAmp, 0);
+  //display->drawCircle(0, 15, trebleAmp+1, 0);
+  //
+
+  //display->drawCircle(32, 0, bassAmp*2, red);
+  //display->drawCircle(32, 0, bassAmp*2+1, red);
+  //display->drawCircle(32, 0, bassAmp*2, 0);
+  //display->drawCircle(32, 0, bassAmp*2+1, 0);
+  //display->drawCircle(15, 7, sum, red);
+  //if (sum > 8){
+  //  // draw filled in and fade
+  //  for (int r = 0; r < sum; r++){
+  //    display->drawCircle(16, 7, r, green);
+  //  }
+  //  for (int r = sum; r < 32; r++){
+  //    display->drawCircle(16, 7, r, 0);
+  //  }
+  //    
+  //}
   //delay(1000);
   //display->drawCircle(15, 7, sum, black);
   
