@@ -25,9 +25,15 @@ volatile byte samplePos = 0;     // Buffer position counter
 int thresholds[8];
 int buffers[8][20];
 int loop_ct;
+bool rainbow;
+int lastButtonState; 
+
 void setup(){
   display = new HackathonDisplay();
   display->begin();
+  pinMode(7, INPUT);
+  rainbow = true;
+  lastButtonState = 0;
 
   Serial.begin(9600);
   Serial.println("serial init");
@@ -48,11 +54,36 @@ void loop(){
 
   capture_and_process_audio();
 
-  int red, blue, green, black;
+  int red, blue, green, black, purple, orange, yellow, pink, white;
+
   red = display->Color333(7, 0, 0);
   green = display->Color333(0, 7, 0);
   blue = display->Color333(0, 0, 7);
+  white = display->Color333(7,7,7);
+  purple = display->Color333(5,0,7);
+  orange = display->Color333(7,3,0);
+  yellow = display->Color333(7,6,0);
+  pink = display->Color333(7, 2, 2);
+
+  //int colors[] = {red, green, blue, white, purple, orange, yellow, pink};
+  
   black = 0;
+
+
+  int colors[] = {red, orange, yellow, green, blue, purple, pink, white};
+  int colors2[] = {
+
+    display->Color333(0,7,0),
+
+    display->Color333(0,6,1),
+    display->Color333(0,5,2),
+    display->Color333(0,4,3),
+    display->Color333(0,3,4),
+    display->Color333(0,2,5),
+    display->Color333(0,1,6),
+
+    display->Color333(0,0,7)
+  };
 
   //int buckets[8];
   //for (int i = 0; i < 8; i++){buckets[8] = 0;}
@@ -72,13 +103,28 @@ void loop(){
   //  int iMax, iMin;
   //  rain(i, color);
   //}
+  int buttonState = digitalRead(7);
+  if (buttonState != lastButtonState){
+
+    if (buttonState == HIGH){
+      rainbow = !rainbow;
+      Serial.print("rainbow: ");
+      Serial.println(rainbow);
+    }
+  }
+  lastButtonState = buttonState;
+
   int bassAmp = spectrum[0] + spectrum[1];
   int bassThresh = 150;
 
   if(bassAmp > bassThresh){
     int bucketN = bassAmp % 8;
-    int color = display->Color333(3,bucketN,8-bucketN);
-    rain(bucketN, color);
+    int color = display->Color333(0,bucketN+1,9-bucketN);
+    if(rainbow){
+      rain(bucketN, colors2[bucketN]);
+    } else {
+      rain(bucketN, colors[bucketN]);
+    }
   }
 }
 
