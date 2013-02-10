@@ -22,14 +22,25 @@ uint16_t      spectrum[FFT_N/2]; // Spectrum output buffer
 volatile byte samplePos = 0;     // Buffer position counter
 
 // end FFT stuff
-
+int thresholds[8];
+int buffers[8][20];
+int loop_ct;
 void setup(){
   display = new HackathonDisplay();
   display->begin();
 
   Serial.begin(9600);
+  Serial.println("serial init");
+  Serial.println(FFT_N);
+  loop_ct = 0;
 
   initialize_fft();
+  for (int i = 0; i < 8; i++){
+    thresholds[i] = 0;
+    for (int j = 0; j < 20; j++){
+      buffers[i][j] = 0;
+    }
+  }
 }
 
 
@@ -38,44 +49,53 @@ void loop(){
   capture_and_process_audio();
 
   int red, blue, green, black;
-  red = display->Color333(255, 0, 0);
-  green = display->Color333(0, 255, 0);
-  blue = display->Color333(0, 0, 255);
+  red = display->Color333(7, 0, 0);
+  green = display->Color333(0, 7, 0);
+  blue = display->Color333(0, 0, 7);
   black = 0;
 
-  int sum = 0;
-  for (int i = 0; i < FFT_N/2; i++){
-    sum += spectrum[i];
-  }
-  sum %= 16;
-  
-  
-
-  display->drawCircle(15, 7, sum, red);
-  if (sum > 8){
-    // draw filled in and fade
-    for (int r = 0; r < sum; r++){
-      display->drawCircle(16, 7, r, (sum%2==0 ? (r%3==0 ? green: red) : blue));
-    }
-    for (int r = sum; r < 15; r++){
-      display->drawCircle(16, 7, r, 0);
-    }
-      
-  }
-  //delay(1000);
-  //display->drawCircle(15, 7, sum, black);
-  
-  // Reset the screen to black
-  //for (int x = 0; x < 32; x++){
-  //  display->drawLine(x, 0, x, 15, 0);
-  //  //display->drawCircle(0, 0,i , 0);
+  //int buckets[8];
+  //for (int i = 0; i < 8; i++){buckets[8] = 0;}
+  //for (int i = 0; i < 8; i++){
+  //  int offset = i*8;
+  //  buckets[i] += spectrum[offset+i];
   //}
-  
 
+  //loop_ct++
+  //int index = loop_ct % 20;
+  //for (int i = 0; i < 8; i++){
+  //  buffers[i][loop_ct] = bucket[i];
+  //}
 
+  //for (int i = 0; i < 8; i++){
+  //  int color = display->Color333(3,i,8-i);
+  //  int iMax, iMin;
+  //  rain(i, color);
+  //}
+  int bassAmp = spectrum[0] + spectrum[1];
+  int bassThresh = 150;
 
+  if(bassAmp > bassThresh){
+    int bucketN = bassAmp % 8;
+    int color = display->Color333(3,bucketN,8-bucketN);
+    rain(bucketN, color);
+  }
 }
 
+
+void rain(int bucket, int color){
+  
+  int x_start = bucket * 4;
+  int x_end = x_start + 4;
+  int length = 3;
+  for (int y = 0; y < 15; y++){
+    for (int x = x_start; x < x_end; x++){
+      display->drawLine(x, 0, x, 15, 0);
+      display->drawLine(x, y, x, y+length, color);
+    }
+  }
+   
+}
 
 /* ----------------------------------------------------------------------- */
 /* --------------------------- ADVANCED STUFF ---------------------------- */
