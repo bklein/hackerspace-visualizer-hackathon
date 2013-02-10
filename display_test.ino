@@ -22,9 +22,6 @@ uint16_t      spectrum[FFT_N/2]; // Spectrum output buffer
 volatile byte samplePos = 0;     // Buffer position counter
 
 // end FFT stuff
-int thresholds[8];
-int buffers[8][20];
-int loop_ct;
 bool rainbow;
 int lastButtonState; 
 
@@ -37,16 +34,8 @@ void setup(){
 
   Serial.begin(9600);
   Serial.println("serial init");
-  Serial.println(FFT_N);
-  loop_ct = 0;
 
   initialize_fft();
-  for (int i = 0; i < 8; i++){
-    thresholds[i] = 0;
-    for (int j = 0; j < 20; j++){
-      buffers[i][j] = 0;
-    }
-  }
 }
 
 
@@ -65,10 +54,7 @@ void loop(){
   yellow = display->Color333(7,6,0);
   pink = display->Color333(7, 2, 2);
 
-  //int colors[] = {red, green, blue, white, purple, orange, yellow, pink};
-  
   black = 0;
-
 
   int colors[] = {red, orange, yellow, green, blue, purple, pink, white};
   int colors2[] = {
@@ -85,24 +71,6 @@ void loop(){
     display->Color333(0,0,7)
   };
 
-  //int buckets[8];
-  //for (int i = 0; i < 8; i++){buckets[8] = 0;}
-  //for (int i = 0; i < 8; i++){
-  //  int offset = i*8;
-  //  buckets[i] += spectrum[offset+i];
-  //}
-
-  //loop_ct++
-  //int index = loop_ct % 20;
-  //for (int i = 0; i < 8; i++){
-  //  buffers[i][loop_ct] = bucket[i];
-  //}
-
-  //for (int i = 0; i < 8; i++){
-  //  int color = display->Color333(3,i,8-i);
-  //  int iMax, iMin;
-  //  rain(i, color);
-  //}
   int buttonState = digitalRead(7);
   if (buttonState != lastButtonState){
 
